@@ -23,22 +23,25 @@ import argparse
 
 
 
-# #generating request to server of provided handle name
-# response = requests.get(f"https://codeforces.com/submissions/{handle_name}")
-
-# #Checking whether the given user exists or not just by getting it response code from server output
-# # 404 code is for "Page not found"
-# if response.status_code == 404:
-#     print("ys")
-#     exit()
-
 #Class Created for handle all submission data
 class SubmissionsData:
 
     #for writing a csv file only for accepted
     csvMainList = ["Question","Accepted","Runtime","Wrong","Time",
                         "Compilation","lastDate","lastTime"
-                        ]
+                      ]
+
+    # For writing First row in csv file
+    csvMainDict = {"Question":"Question's Name",
+                    "Accepted":"Accepted",
+                    "Runtime":"Runtime Error",
+                    "Wrong": "Wrong On test cases",
+                    "Time":"Time Limit Exceed",
+                    "Compilation" : "Compilation Error",
+                    "lastDate" : "Changed on Last Date",
+                    "lastTime": "Changed on Last time"
+                    }
+
 
     # just a constructor function 
     def __init__(self,handle_name):
@@ -113,8 +116,6 @@ class SubmissionsData:
                                                             "Wrong":0,
                                                             "Time":0,
                                                             "Compilation":0,
-                                                            # "Memory":0,
-                                                            # "Hacked":0,
                                                             "lastDate":None,
                                                             "lastTime":None
                                                             # "#code": []
@@ -128,6 +129,7 @@ class SubmissionsData:
                     # Checking element for list if don't exists then adding it 
                     if dataList[5].split()[0] not in self.csvMainList:
                         self.csvMainList.append(dataList[5].split()[0])
+                        self.csvMainDict[f"{dataList[5].split()[0]}"] : f"{dataList[5].split()[0]}"
                     else:
                         self.dataDict[f"{dataList[3]}"][dataList[5].split()[0]] += 1
 
@@ -145,6 +147,7 @@ class SubmissionsData:
                     if uniqueCode == dataList[0]:
                         break
 
+            print(f"\tFetched {var} pages and no of questions - {len(self.dataDict)}")
             #increasing variable var so that we can move to next page
             var += 1                
 
@@ -161,13 +164,11 @@ class SubmissionsData:
 
         #it is creating a new file if don't exists before using handle name
         with open(f"{self.handle_name}'s Accepted.csv","w",newline='',encoding="utf-8") as csvfile:
-            # creating a writer object to use it further
-            csvwriter = csv.writer(csvfile)
-            # writing a row which is main having column names in it
-            csvwriter.writerow(self.csvMainList)
+            
             # again creating a writer object but this time it is dictwriter so that 
             # we have ease of writing our dict details to it
             csvwriter = csv.DictWriter(csvfile,self.csvMainList)
+            csvwriter.writerow(self.csvMainDict)
             for items in self.dataDict:
                 if self.dataDict[items]["Accepted"] == 1:
                     csvwriter.writerow(self.dataDict[items])
@@ -181,13 +182,11 @@ class SubmissionsData:
 
         #it is creating a new file if don't exists before using handle name
         with open(f"{self.handle_name}'s notAccepted.csv","w",newline='',encoding="utf-8") as csvfile:
-            # creating a writer object to use it further
-            csvwriter = csv.writer(csvfile)
-            # writing a row which is main having column names in it
-            csvwriter.writerow(self.csvMainList)
+            
             # again creating a writer object but this time it is dictwriter so that 
             # we have ease of writing our dict details to it
             csvwriter = csv.DictWriter(csvfile,self.csvMainList)
+            csvwriter.writerow(self.csvMainDict)
             for items in self.dataDict:
                 if self.dataDict[items]["Accepted"] == 0:
                     csvwriter.writerow(self.dataDict[items])
@@ -200,13 +199,11 @@ class SubmissionsData:
     def allSubmissionsCsv(self):
         #it is creating a new file if don't exists before using handle name
         with open(f"{self.handle_name}'s submissions.csv","w",newline='',encoding="utf-8") as csvfile:
-            # creating a writer object to use it further
-            csvwriter = csv.writer(csvfile)
-            # writing a row which is main having column names in it
-            csvwriter.writerow(self.csvMainList)
+            
             # again creating a writer object but this time it is dictwriter so that 
             # we have ease of writing our dict details to it
             csvwriter = csv.DictWriter(csvfile,self.csvMainList)
+            csvwriter.writerow(self.csvMainDict)
 
             #this loop will allow every submission to be written in csv file
             for items in self.dataDict:
@@ -227,20 +224,10 @@ class SubmissionsData:
             try:
                 n = int(input("\n\n\n\t\tEnter days(positive) you want to start from: "))
                 #handling this try except block just to check user enter a positive integer only
-                try:
-                    if n<0:
-                        #this will genrate an exception of negative error
-                        raise Exception("NegativeError")
-                except Exception as e:
-                    #this will print a simple msg and ask if user want to go back
-                    print("\n\t\tPlease Enter a positive integer!")
-                    ans = input("\n\t\tDo you want to go back(y/n)? ")
-                    if ans.upper() == "Y":
-                        return
-                    #it will continue the loop if user want to try more
-                    continue
-                else:
-                    break
+                if n<0:
+                    #this will genrate an exception of negative error
+                    raise Exception("NegativeError")
+
             except ValueError:
                 print("\n\t\tPlease enter a integer!")
                 ans = input("\n\t\tDo you want to go back(y/n)? ")
@@ -248,6 +235,16 @@ class SubmissionsData:
                     return
                 #it will continue the loop if user want to try more
                 continue
+                
+            except Exception as e:
+                #this will print a simple msg and ask if user want to go back
+                print("\n\t\tPlease Enter a positive integer!")
+                ans = input("\n\t\tDo you want to go back(y/n)? ")
+                if ans.upper() == "Y":
+                    return
+                #it will continue the loop if user want to try more
+                continue
+            
             else:
                 break
         #this is datetime object having values of date and time when it is executed
@@ -256,13 +253,11 @@ class SubmissionsData:
         nDaysAgoDate = (todayDateTime - timedelta( n )).date()
 
         with open(f"{self.handle_name} {n} days Ago till now.csv","w",newline='',encoding="utf-8") as csvfile:
-            # creating a writer object to use it further
-            csvwriter = csv.writer(csvfile)
-            # writing a row which is main having column names in it
-            csvwriter.writerow(self.csvMainList)
+            
             # again creating a writer object but this time it is dictwriter so that 
             # we have ease of writing our dict details to it
             csvwriter = csv.DictWriter(csvfile,self.csvMainList)
+            csvwriter.writerow(self.csvMainDict)
 
             for element in self.dataDict:
 
@@ -302,13 +297,11 @@ class SubmissionsData:
 
         with open(f"{self.handle_name}'s submissions after {userDate}.csv"
                             ,"w",newline='',encoding="utf-8") as csvfile:
-            # creating a writer object to use it further
-            csvwriter = csv.writer(csvfile)
-            # writing a row which is main having column names in it
-            csvwriter.writerow(self.csvMainList)
+            
             # again creating a writer object but this time it is dictwriter so that 
             # we have ease of writing our dict details to it
             csvwriter = csv.DictWriter(csvfile,self.csvMainList)
+            csvwriter.writerow(self.csvMainDict)
 
             # Traversing thorugh dataDict elements and comparing it with userDate
             for element in self.dataDict:
